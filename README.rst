@@ -1,6 +1,8 @@
 Fetch and deploy external resource files
 ========================================
 
+Sorry, this file is outdated – will be updated soon. Don't read on. Thank you.
+
 Installation
 ------------
 
