@@ -1,0 +1,13 @@
+.mypy_cache/
+**/*~
+**/.#*
+venv*
+.venv
+**/__pycache__
+/dist/
+uv.lock
+*.test
+*.yaml
+/static_external/
+/attic/
+demo*
