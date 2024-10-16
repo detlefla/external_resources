@@ -21,7 +21,7 @@ class DownloadTask:
 async def download(session: httpx.AsyncClient, task: DownloadTask):
     """Downloads a single resource."""
     logger.debug("Download starts for %s", task.url)
-    response = await session.get(url=task.url)
+    response = await session.get(url=task.url, follow_redirects=True)
     task.status_code = response.status_code
     task.ok = task.status_code == 200
     if task.ok:
