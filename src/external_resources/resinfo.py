@@ -26,10 +26,14 @@ class ItemInfo:
         return (self.full_url or variables["full_url"]).format(**variables)
     
     def get_local_name(self, variables) -> str:
+        filename = self.filename or variables["filename"]
         if self.archive:
             # must have a filename attribute then XXX check
-            return self.filename.format(**variables)
-        return (self.local_name or variables["local_name"]).format(**variables)
+            return filename.format(**variables)
+        local_name = self.local_name or variables["local_name"]
+        if not local_name:
+            local_name = filename
+        return local_name.format(**variables)
 
 
 @define
@@ -65,6 +69,18 @@ class ResourceObject:
     release: Release | None = None
     variables: dict[str, Any] = Factory(dict)
     
+    def set_variables(self):
+        """Collects and propagates inheritable attributes."""
+        for name in INHERITED_ATTRS:
+            self.variables[name] = getattr(self.release, name, None) or getattr(self.resource, name)
+            self.variables["version"] = self.version
+            try:
+                v = parse(self.version)
+                self.variables["major"] = str(v.major)
+                self.variables["minor"] = str(v.minor)
+            except InvalidVersion:
+                pass  # will raise an error if major or minor are referenced
+    
     def find_version(self, spec: SpecifierSet):
         """Returns the latest release version conforming to spec or None."""
         candidates = [(version, release)
@@ -79,16 +95,7 @@ class ResourceObject:
         else:
             raise KeyError(f"Resource {self.name}: no release found for “{spec}”")
         
-        for name in INHERITED_ATTRS:
-            self.variables[name] = getattr(release, name, None) or getattr(self.resource, name)
-            self.variables["version"] = version
-            try:
-                v = parse(version)
-                self.variables["major"] = str(v.major)
-                self.variables["minor"] = str(v.minor)
-            except InvalidVersion:
-                pass  # will raise an error if major or minor are referenced
-        # print(self.name, self.variables)
+        self.set_variables()
     
     def get_full_url(self) -> str:
         return self.variables["full_url"].format(**self.variables)
@@ -104,11 +111,18 @@ def find_resources(
     """Matches requirements against resources and returns a list of required resource objects."""
     result: list[ResourceObject] = []
     for req in requirements:
-        resource = resources.get(req.name)
-        if resource is None:
-            raise KeyError(f"resource {req.name} is not defined")
-        res_obj = ResourceObject(name=req.name, resource=resource)
-        res_obj.find_version(spec=req.specifier)
+        if isinstance(req, str):
+            name, version = req.split("==", 1)
+            resource = resources.get(name)
+            res_obj = ResourceObject(name=name, resource=resource, version=version,
+                    release=resource.releases[version])
+            res_obj.set_variables()
+        else:
+            resource = resources.get(req.name)
+            if resource is None:
+                raise KeyError(f"resource {req.name} is not defined")
+            res_obj = ResourceObject(name=req.name, resource=resource)
+            res_obj.find_version(spec=req.specifier)
         if not res_obj.release.item_list:
             res_obj.release.item_list.append(ItemInfo())
         

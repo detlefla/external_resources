@@ -2,7 +2,7 @@
 
 from cyclopts import App, Parameter
 import logging
-from packaging.requirements import Requirement
+from packaging.requirements import Requirement, InvalidRequirement
 from pathlib import Path
 import subprocess
 import sys
@@ -11,7 +11,7 @@ from typing import Annotated
 from .cache import check_for_download, get_cache_path, get_cache_subdir
 from .operations import cmd_download
 from .requirements import get_config, read_requirements
-from .resinfo import find_resources
+from .resinfo import find_resources, Resource
 
 logger = logging.getLogger("extres")
 CONFIG_FILE = "ext_resources.yaml"
@@ -33,7 +33,18 @@ def download(
     conf["verbose"] = verbose
     conf["force"] = force
     
-    if requirements:
+    if requirements == ("all",):
+        reqs = []
+        for name, r in conf.items():
+            if not isinstance(r, Resource):
+                continue
+            for version in r.releases.keys():
+                try:
+                    r = Requirement(f"{name}=={version}")
+                except InvalidRequirement:
+                    r = f"{name}=={version}"
+                reqs.append(r)
+    elif requirements:
         reqs = [Requirement(r) for r in requirements]
     else:
         reqs = read_requirements()

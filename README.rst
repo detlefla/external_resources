@@ -8,7 +8,7 @@ Installation
 
 #. Install this package (as editable or from the repository) into your virtual environment.
 
-#. Install `invoke <>`_,
+#. Install ``invoke``,
    create a ``tasks.py`` file in the root directory of your project and insert these lines::
 
       from external_resources.tasks import (
