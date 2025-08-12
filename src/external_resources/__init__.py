@@ -1,3 +1,4 @@
-from importlib.resources import files
+from importlib.metadata import version
 
-__version__ = (files(__name__) / "VERSION" ).read_text().strip()
+VERSION = version("external-resources")  # this must be pyproject.toml's project name
+__version__ = VERSION

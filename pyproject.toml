@@ -1,10 +1,10 @@
 [build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
+requires = ["uv_build>=0.8.8,<0.9.0"]
+build-backend = "uv_build"
 
 [project]
 name = "external-resources"
-dynamic = ["version"]
+version = "0.2.0"
 description = "Fetch and deploy external resources (CSS, JS, Fonts) for web services"
 keywords = ["web", "css", "js", "fonts", "resources", "installation"]
 readme = "README.rst"
@@ -36,6 +36,7 @@ dependencies = [
   "cattrs",
   "cyclopts",
   "httpx",
+  "msgspec",
   "pyyaml",
   "packaging",
   "pyproject-parser",
@@ -44,27 +45,25 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = [
-  "build",
   "ipython",
   "invoke",
   "mypy",
-  "pip",
   "pyproject-parser[cli]",
   "pytest",
   "types-invoke",
   "types-PyYAML",
-  "wheel",
 ]
 
 [project.scripts]
 extres = "external_resources.extres:app"
 
 [project.urls]
-#Homepage = "https://example.com"
+Homepage = "https://github.com/detlefla/external_resources"
 #Documentation = "https://readthedocs.org"
-#Repository = "https://github.com/me/spam.git"
-#Issues = "https://github.com/me/spam/issues"
-#Changelog = "https://github.com/me/spam/blob/master/CHANGELOG.md"
+Repository = "https://github.com/detlefla/external_resources.git"
+Issues = "https://github.com/detlefla/external_resources/issues"
+Changelog = "https://github.com/detlefla/external_resources/blob/master/CHANGELOG.md"
+
 
 # [tool.ext_resources]
 # resource_index = "external_resources.yaml"
@@ -72,10 +71,6 @@ extres = "external_resources.extres:app"
 #   "bootstrap",
 #   "htmx == 1.9.10",
 # ]
-
-[tool.hatch.version]
-path = "src/external_resources/VERSION"
-pattern = "(?P<version>\\S+)"
 
 [tool.ruff]
 ignore = ["F401", "F405"]
