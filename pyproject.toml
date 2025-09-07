@@ -4,9 +4,8 @@ build-backend = "uv_build"
 
 [project]
 name = "external-resources"
-version = "0.2.0"
+version = "0.3.0"
 description = "Fetch and deploy external resources (CSS, JS, Fonts) for web services"
-keywords = ["web", "css", "js", "fonts", "resources", "installation"]
 readme = "README.rst"
 requires-python = ">= 3.10"
 authors = [
@@ -15,6 +14,10 @@ authors = [
 maintainers = [
   {name = "Detlef Lannert", email = "detlef@lannert.de"},
 ]
+license = "GPL-3.0-or-later"
+license-files = ["LICENSE"]
+keywords = ["js", "JavaScript", "CSS", "fonts", "vendoring", "web application",
+  "resources", "web", "installation"]
 classifiers = [
   "Development Status :: 4 - Beta",
   "Framework :: Django",
@@ -32,8 +35,6 @@ classifiers = [
 ]
 
 dependencies = [
-  "attrs",
-  "cattrs",
   "cyclopts",
   "httpx",
   "msgspec",
@@ -41,21 +42,14 @@ dependencies = [
   "packaging",
   "pyproject-parser",
   "rich",
-]
-
-[project.optional-dependencies]
-dev = [
-  "ipython",
-  "invoke",
-  "mypy",
-  "pyproject-parser[cli]",
-  "pytest",
-  "types-invoke",
-  "types-PyYAML",
+  "tomli-w",
+  "xdg-base-dirs>=6.0.2",
+  "uuid7>=0.1.0",
+  "niquests>=3.15.2",
 ]
 
 [project.scripts]
-extres = "external_resources.extres:app"
+extres = "external_resources.main:app"
 
 [project.urls]
 Homepage = "https://github.com/detlefla/external_resources"
@@ -65,22 +59,35 @@ Issues = "https://github.com/detlefla/external_resources/issues"
 Changelog = "https://github.com/detlefla/external_resources/blob/master/CHANGELOG.md"
 
 
-# [tool.ext_resources]
-# resource_index = "external_resources.yaml"
-# requires = [
-#   "bootstrap",
-#   "htmx == 1.9.10",
-# ]
+[tool.external-resources]
+resource_index = "external_resources.yaml"
+requires = [
+  "bootstrap",
+  "htmx == 1.9.10",
+]
 
 [tool.ruff]
-ignore = ["F401", "F405"]
 line-length = 100
 target-version = "py310"
-task-tags = ["XXX"]
 extend-exclude = ["migrations"]
 
-[tool.ruff.per-file-ignores]
+[tool.ruff.lint]
+ignore = ["F401", "F405"]
+task-tags = ["XXX"]
+
+[tool.ruff.lint.per-file-ignores]
 # "filename" = [list of codes]
 
 [tool.uv]
 package = true
+
+[dependency-groups]
+dev = [
+    "ipython",
+    "invoke",
+    "mypy",
+    "pyproject-parser[cli]",
+    "pytest >= 8.4.1",
+    "types-invoke",
+    "types-PyYAML",
+]
