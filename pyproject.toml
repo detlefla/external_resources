@@ -4,7 +4,7 @@ build-backend = "uv_build"
 
 [project]
 name = "external-resources"
-version = "0.3.0"
+version = "0.3.1"
 description = "Fetch and deploy external resources (CSS, JS, Fonts) for web services"
 readme = "README.rst"
 requires-python = ">= 3.10"

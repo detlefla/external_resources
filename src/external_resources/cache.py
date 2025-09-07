@@ -56,6 +56,8 @@ class ResourceCache(msgspec.Struct):
                     "hash string, "
                     "created timestamp"
                     ")")
+            cursor.close()
+            conn.commit()
             self.db_data = {}
             logger.debug("created cache database table urlhash")
             return
@@ -129,6 +131,7 @@ class ResourceCache(msgspec.Struct):
                     (url, size, hash, tstamp_str),
                     )
             cursor.close()
+            conn.commit()
         except sqlite3.IntegrityError:
             logger.error(
                     "error when writing data for %s to cache: entry exists",
