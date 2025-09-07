@@ -1,69 +1,141 @@
+from .checksums import get_checksum
+from datetime import datetime as dt, UTC
 import logging
-import os
+import msgspec
 from pathlib import Path
-from .resinfo import ResourceObject, ItemInfo
-from .tools import DownloadTask, download_files
+import sqlite3
+# from uuid import uuid7  # use this from Python 3.14 onwards
+from uuid_extensions import uuid7  # type: ignore[import-untyped]
 
 
 logger = logging.getLogger("extres")
 
 
-def get_cache_dir() -> Path:
-    """Returns the base dir for the resource cache."""
-    env = os.environ.get("EXTRES_CACHE_DIR")
-    if env:
-        result = Path(env)
-    else:
-        result = Path("~/.cache") / "extres"
-    result = result.expanduser()
-    return result
+CACHE_DATABASE = "urls.db"
+CACHE_CONTENTS = "files"
+CACHE_DOWNLOAD = "downloads"
 
 
-def get_cache_subdir(res_obj: ResourceObject, create=False) -> Path:
-    """Returns the directory path for all files of a resource."""
-    cache_dir = get_cache_dir()
-    subdir = cache_dir / res_obj.name / res_obj.version
-    if create:
-        subdir.mkdir(parents=True, exist_ok=True)
-    return subdir
+class CacheFileMetadata(msgspec.Struct):
+    """Metadata for a cached resource file"""
+    url: str
+    size: int
+    hash: str
+    downloaded_at: dt
 
 
-def get_cache_path(res_obj: ResourceObject, item: ItemInfo) -> Path:
-    """Returns the file path for a resource item."""
-    cache_dir = get_cache_subdir(res_obj)
-    typ = item.type or res_obj.variables.get("type", "unknown")
-    filename = f"f-{typ}-{item.get_local_name(variables=res_obj.variables)}"
-    return cache_dir / filename
-
-
-def cache_file_exists(res_obj: ResourceObject, item: ItemInfo) -> bool:
-    """Checks if cache file for this resource exists."""
-    path = get_cache_path(res_obj, item)
-    return path.exists()
-
-
-def check_for_download(
-        res_obj: ResourceObject,
-        item: ItemInfo,
-        downloads: list[DownloadTask],
-        force=False):
-    """Prepares download if cache file does not exist."""
-    path = get_cache_path(res_obj, item)
-    if path.exists() and not force:
-        return
-    dt = DownloadTask(item.get_full_url(variables=res_obj.variables), path)
-    downloads.append(dt)
-    return
-
-
-def copy_files(res_obj_list: list[ResourceObject], target_base_path: Path):
-    """Copies requested files to locations below the target_base_path."""
-    downloads: list[DownloadTask] = []
-    for res_obj in res_obj_list:
-        check_for_download(res_obj, downloads)
-    if downloads:
-        download_files(downloads)
-    for res_obj in res_obj_list:
-        src = get_cache_path(res_obj)
-        dst = res_obj.get_target_path(target_base_path)
-        dst.write_bytes(src.read_bytes())
+class ResourceCache(msgspec.Struct):
+    """Holds metadata and access methods for the Resource Cache."""
+    dir: Path
+    db_conn: sqlite3.Connection | None = None
+    db_data: dict[str, tuple[int, str, str]] = {}
+    
+    def make_conn(self) -> sqlite3.Connection:
+        if self.db_conn is None:
+            db_file = self.dir / CACHE_DATABASE
+            self.db_conn = sqlite3.connect(db_file)
+            logger.debug(
+                    "connected to cache database %s",
+                    db_file,
+                    )
+        return self.db_conn
+    
+    def close(self) -> None:
+        if self.db_conn:
+            self.db_conn.close()
+    
+    def read_db(self) -> None:
+        conn = self.make_conn()
+        cursor = conn.cursor()
+        try:
+            cursor.execute("select * from urlhash")
+        except sqlite3.OperationalError:
+            cursor.execute("create table urlhash ("
+                    "url string unique, "
+                    "size int, "
+                    "hash string, "
+                    "created timestamp"
+                    ")")
+            self.db_data = {}
+            logger.debug("created cache database table urlhash")
+            return
+        data: dict[str, tuple[int, str, str]] = {}
+        count = 0
+        for entry in cursor.fetchall():
+            url, size, hash, created = entry
+            data[url] = (size, hash, created)
+            count += 1
+        self.db_data = data
+        cursor.close()
+        logger.debug("%s records read from database", count)
+    
+    def get_metadata(self, url: str) -> CacheFileMetadata | None:
+        if url in self.db_data:
+            size, hash, created = self.db_data[url]
+            md = CacheFileMetadata(url=url, size=size, hash=hash,
+                    downloaded_at=dt.fromisoformat(created))
+        else:
+            md = None
+        return md
+    
+    def get_filepath(self, url: str) -> Path | None:
+        if url in self.db_data:
+            size, hash, created = self.db_data[url]
+            net_hash = hash.split(":", 1)[1]
+            path = self.dir / CACHE_CONTENTS / net_hash
+            if not path.exists():
+                logger.warning(
+                        "cache contents missing for %s",
+                        url,
+                        )
+                return None
+            return path
+        return None
+    
+    def get_content(self, url: str) -> bytes | None:
+        path = self.get_filepath(url)
+        if path and path.exists():
+            return path.read_bytes()
+        return None
+    
+    def get_download_location(self) -> Path:
+        """Returns target path for cache download."""
+        temp_name = str(uuid7())
+        download_dir = self.dir / CACHE_DOWNLOAD
+        if not download_dir.exists():
+            download_dir.mkdir(mode=0o700, parents=True, exist_ok=True)
+        return download_dir / temp_name
+    
+    def add_to_cache(self,
+            url: str,
+            size: int,
+            hash: str,
+            data_file: Path,
+            ) -> CacheFileMetadata:
+        pure_hash = hash.split(":", 1)[1]
+        content_dir = self.dir / CACHE_CONTENTS
+        if not content_dir.exists():
+            content_dir.mkdir(mode=0o700, exist_ok=True, parents=True)
+        content_file = content_dir / pure_hash
+        data_file.rename(content_file)
+        
+        tstamp = dt.now(UTC)
+        tstamp_str = tstamp.isoformat()
+        try:
+            conn = self.make_conn()
+            cursor = conn.cursor()
+            cursor.execute(
+                    "insert into urlhash values (?, ?, ?, ?)",
+                    (url, size, hash, tstamp_str),
+                    )
+            cursor.close()
+        except sqlite3.IntegrityError:
+            logger.error(
+                    "error when writing data for %s to cache: entry exists",
+                    url,
+                    )
+            raise
+        self.db_data[url] = (size, hash, tstamp_str)
+        metadata = CacheFileMetadata(url=url, size=size, hash=hash,
+                downloaded_at=tstamp)
+        return metadata
