@@ -4,7 +4,7 @@ from pathlib import Path
 
 from .cache import ResourceCache
 from .lockfile import LockFile, read_lockfile
-from .operations import lock_operation, sync_operation
+from .operations import copy_or_link, lock_operation, sync_operation
 from .options import get_options
 from .registry import read_registry_file
 from .requirements import RequirementCollection
@@ -104,6 +104,7 @@ def test_collect(
 @app.command
 def lock(
         requirements: list[str] = [],
+        project_file: Path | None = None,
         package: Path | None = None,
         directory: Path | None = None,
         dry_run: bool = False,
@@ -125,7 +126,11 @@ def lock(
     
     rc = RequirementCollection()
     reg = read_registry_file(options.registry_path)
-    rc.add_pyproject(reg, options.package_base / "pyproject.toml")
+
+    if project_file is None:
+        rc.add_pyproject(reg, options.package_base / "pyproject.toml")
+    else:
+        rc.add_pyproject(reg, project_file)
     if requirements:
         rc.add_req_resources(
                 reg.apply_requirements(
@@ -157,7 +162,7 @@ def sync(
         cache_dir: Path | None = None,
         registry: Path | None = None,
         ):
-    """Read requirements and write lockfile"""
+    """Synchronize resources with existing lockfile"""
     options = get_options(
             dry_run=dry_run,
             debug=debug,
@@ -177,5 +182,6 @@ def sync(
     cache.read_db()
     
     sync_operation(target, lf, cache, options)
+    copy_or_link(options.lockfile_path, target)
     
     cache.close()

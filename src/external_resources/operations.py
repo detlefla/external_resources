@@ -65,20 +65,11 @@ def lock_operation(
             )
 
 
-def _copy_or_link(from_path: Path, to_path: Path) -> None:
-    if to_path.exists():
-        # same data?
-        # this method for finding out is not highly efficient :-(
-        if from_path.read_bytes() == to_path.read_bytes():
-            return  # nothing else to do
-        else:
-            logger.debug("removing existing file %s", to_path)
-            to_path.unlink()
-    try:
-        to_path.hardlink_to(from_path)
-    except OSError:
-        # probable reason: crossing filesystem boundary
-        to_path.write_bytes(from_path.read_bytes())
+def copy_or_link(from_path: Path, to_path: Path) -> None:
+    """Hardlinks or copies a file."""
+    if to_path.is_file() and to_path.exists():
+        logger.debug("overwriting existing file %s", to_path)
+    shutil.copy(from_path, to_path)
 
 
 def sync_operation(
@@ -87,6 +78,7 @@ def sync_operation(
         cache: ResourceCache,
         options: Options,
         ) -> None:
+    """Populates target directory with resources given in lockfile."""
     fi_list = _fill_cache(lf, cache, options)
     
     for fi in fi_list:
@@ -95,7 +87,7 @@ def sync_operation(
             target_path = target / fi.lock_entry.destination
             if not target_path.parent.exists():
                 target_path.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
-            _copy_or_link(cache_path, target_path)
+            copy_or_link(cache_path, target_path)
             logger.info("created resource at %s", target_path)
         elif has_attr(fi.lock_entry, "members"):
             zf = ZipFile(cache_path)
