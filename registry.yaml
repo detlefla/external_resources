@@ -1,0 +1,178 @@
+---
+
+resources:
+   pyodide:
+      base_url: "https://cdn.jsdelivr.net/pyodide"
+      homepage: "https://pyodide.org/en/stable/index.html"
+      versions:
+         0.28.2:
+            files:
+            -  url: "{base_url}/v{version}/full/pyodide.js"
+
+   bootstrap:
+      base_url: "https://cdn.jsdelivr.net/npm/bootstrap"
+      versions:
+         5.0.2:
+            files:
+            -  type: css
+               url: "{base_url}@{version}/dist/css/bootstrap.min.css"
+               integrity: "sha384:EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC"
+            -  type: js
+               url: "{base_url}@{version}/dist/js/bootstrap.bundle.min.js"
+               integrity: "sha384:OLBgp1GsljhM2TJ+sbHjaiH9txEUvgdDTAzHv2P24donTt6/529l+9Ua0vFImLlb"
+         4.6.2:
+            files:
+            -  type: css
+               url: "{base_url}@{version}/dist/css/bootstrap.min.css"
+               integrity: "sha384:WskhaSGFgHYWDcbwN70/dfYBj47jz9qbsMId/iRN3ewGhXQFZCSftd1LZCfmhktB"
+            -  type: js
+               url: "{base_url}@{version}/dist/js/bootstrap.bundle.min.js"
+               integrity: "sha384:u/bQvRA/1bobcXlcEYpsEdFVK/vJs3+T+nXLsBYJthmdBuavHvAW6UsmqO2Gd/F9"
+
+
+   bootstrap4:
+      base_url: "https://stackpath.bootstrapcdn.com/bootstrap"
+      versions:
+         4.6.2:
+            files:
+            -  url: "{base_url}/{version}/css/bootstrap.min.css"
+               integrity: "sha384:WskhaSGFgHYWDcbwN70/dfYBj47jz9qbsMId/iRN3ewGhXQFZCSftd1LZCfmhktB"
+            -  url: "{base_url}/{version}/js/bootstrap.bundle.min.js"
+               integrity: "sha384:u/bQvRA/1bobcXlcEYpsEdFVK/vJs3+T+nXLsBYJthmdBuavHvAW6UsmqO2Gd/F9"
+
+   bootstrap-maxlength:
+      base_url: "https://raw.githubusercontent.com/mimo84/bootstrap-maxlength/master/dist"
+      versions:
+         "2021.04.28":
+            files:
+            - url: "{base_url}/bootstrap-maxlength.min.js"
+
+   htmx:
+      base_url: "https://cdn.jsdelivr.net/npm/htmx.org"
+      versions:
+         1.9.10:
+            files:
+            -  url: "{base_url}@{version}/dist/htmx.min.js"
+   
+   vue2:
+      homepage: "https://vuejs.org"
+      base_url: "https://unpkg.com/vue"
+      versions:
+         2.7.8:
+            files:
+            -  url: "{base_url}@{version}/dist/vue.min.js"
+   vue3:
+      homepage: "https://vuejs.org"
+      base_url: "https://unpkg.com/vue"
+      versions:
+         3.3.4:
+            files:
+            -  url: "{base_url}@{version}/dist/vue.global.js"
+   
+   lineawesome:
+      base_url: "https://maxst.icons8.com/vue-static/landings/line-awesome"
+      versions:
+         1.3.0:
+            files:
+            -  url: "{base_url}/line-awesome/{version}/line-awesome-{version}.zip"
+   
+   jquery:
+      base_url: "https://code.jquery.com/"
+#      versions:
+#         3.6.0:
+#            files:
+#            -  url: "{base_url}jquery-min.js"
+   
+   select2:
+      base_url: "https://cdnjs.cloudflare.com/ajax/libs/select2/"
+      versions:
+         4.0.12:
+            files:
+            -  url: "{base_url}{version}/js/select2.min.js"
+   
+   alpine:
+      base_url: "https://cdn.jsdelivr.net/gh/alpinejs/alpine"
+      versions:
+         2.8.2:
+            files:
+            -  url: "{base_url}@v{version}/dist/alpine.min.js"
+   
+   popper:
+      base_url: "https://cdnjs.cloudflare.com/ajax/libs/popper.js"
+      versions:
+         1.14.3:
+            files:
+            -  url: "{base_url}/{version}/umd/popper.min.js"
+               integrity: "sha384:ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49"
+   
+   sorttable:
+      homepage: "https://www.kryogenix.org/code/browser/sorttable"
+      base_url: "https://www.kryogenix.org/code/browser/sorttable"
+      versions:
+         "2":
+            files:
+            -  url: "{base_url}/sorttable.js"
+               integrity: "sha384:rpYh8DEVgKMvynfAEWKxEVP1Drawcjxg3R4xPs4Rpk9CuyWz5Sndnf+gwD4OSapv"
+   
+#   tablesort:
+#      homepage: "http://tristen.ca/tablesort/demo/"
+#      base_url: "https://raw.github.com/tristen/tablesort/gh-pages/dist"
+#      versions:
+#         5.3.0:
+#            files:
+#            -  url: "{base_url}/tablesort.min.js"
+#               integrity: "sha384:2TEYRcfHOZWj6UjD/ZJFZJe7JFXrNGvEeSk8rvat0e5IE44ikuD/wTLGufE6VJAB"
+#            -  url: "{base_url}/tablesort.css"
+#               integrity: "sha384:4oRbVu6yzOdtZPrgO3VHZ0ruPsx8sxyh83Yl17Y8vPO8Ieh8Te30Np/I+VIiTXoI"
+   
+   hyperscript:
+      base_url: https://unpkg.com
+      versions:
+         0.9.12:
+            files:
+            -  url: "{base_url}/hyperscript.org@{version}"
+               local_name: hyperscript.js
+   
+   datastar:
+      homepage: "https://data-star.dev"
+      base_url: "https://cdn.jsdelivr.net/gh/starfederation"
+      versions:
+         "1.0.0-RC.5":
+            files:
+            -  url: "{base_url}/datastar@{version}/bundles/datastar.js"
+
+   facet:
+      homepage: "https://github.com/kgscialdone/facet"
+      base_url: "https://cdn.jsdelivr.net/gh/kgscialdone"
+      versions:
+         "0.1.2a":
+            files:
+            -  url: "{base_url}/facet@{version}/facet.min.js"
+   
+   jquery:
+      base_url: "https://code.jquery.com/"
+      versions:
+         "3.6.0":
+            files:
+            -  type: js
+               url: "{base_url}jquery-{version}.min.js"
+
+   select2:
+      base_url: "https://cdnjs.cloudflare.com/ajax/libs/select2/"
+      versions:
+         "4.0.12":
+            files:
+            -  type: js
+               url: "{base_url}{version}/js/select2.min.js"
+   
+   vue:
+      base_url: "https://unpkg.com/vue"
+      versions:
+         "2.7.8":
+            files:
+            -  type: js
+               url: "{base_url}@{version}/dist/vue.min.js"
+         "3.3.4":
+            files:
+            -  type: js
+               url: "{base_url}@{version}/dist/vue.global.js"

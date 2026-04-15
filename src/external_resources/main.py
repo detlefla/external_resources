@@ -47,6 +47,7 @@ def test_reg(
         debug: bool = False,
         cache_dir: Path | None = None,
         registry: Path | None = None,
+        show_registry: bool = False,
         ):
     """Test loading registry and applying requirements"""
     options = get_options(
@@ -61,8 +62,9 @@ def test_reg(
     import pprint
     import sys
     reg = read_registry_file(options.registry_path)
-    pprint.pprint(reg)
-    print()
+    if show_registry:
+        pprint.pprint(reg)
+        print()
     reqs = reg.apply_requirements(requirements, versioned_paths={})
     for req in reqs:
         pprint.pprint(req)

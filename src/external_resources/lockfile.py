@@ -15,13 +15,14 @@ SUBDIRS = {"css": "css", "js": "js", "font": "fonts"}
 def _make_local_path(
         name: str,
         type: str,
+        res_name: str,
         vers_dir: str | None = None,
         ) -> str:
     """Sets the local destination path for a resource depending on its type."""
     dir_name = SUBDIRS[type]  # crash on mismatch for now
     if vers_dir is None:
         return f"{dir_name}/{name}"
-    return f"{dir_name}/{vers_dir}/{name}"
+    return f"{dir_name}/{res_name}/{vers_dir}/{name}"
 
 
 class LockResFile(msgspec.Struct):
@@ -135,7 +136,8 @@ class LockFile(msgspec.Struct):
                                 destination=_make_local_path(
                                     name=mem.name,
                                     type=mem.type,
-                                    vers_dir=versioned_dir,
+                                    res_name=rr.name,
+                                    vers_dir=rr.version,  # versioned_dir,
                                     )
                                 )
                         lock_res_archive.members.append(lock_res_mem)
@@ -146,7 +148,8 @@ class LockFile(msgspec.Struct):
                             destination=_make_local_path(
                                 name=res_file.local_name,
                                 type=cast(str, res_file.type),
-                                vers_dir=versioned_dir,
+                                res_name=rr.name,
+                                vers_dir=rr.version,  # versioned_dir,
                                 )
                             )
                     lock_res.files.append(lock_res_file)

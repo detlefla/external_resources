@@ -3,6 +3,7 @@ import msgspec
 from packaging.requirements import Requirement
 from packaging.version import parse as parse_version, Version
 from pathlib import Path
+import re
 from types import ModuleType
 from typing import Literal
 from urllib.parse import urlparse
@@ -10,6 +11,9 @@ from urllib.parse import urlparse
 
 class ResourceSpecificationError(ValueError):
     pass
+
+
+ALIAS_REQ = re.compile(r"^(?P<alias>\w+)\s?:\s?")
 
 
 def _get_dir_for_type(type: str) -> Path:
@@ -100,6 +104,7 @@ class RequiredResource(msgspec.Struct):
     res_item: ResourceItem
     extras: set[str]
     path_versioning: Literal["major", "minor"] | None
+    alias: str | None = None
     
     def get_resource_version(self) -> ResourceVersion:
         """Returns ResourceVersion object pertaining to self's version."""
@@ -117,7 +122,14 @@ class Registry(msgspec.Struct):
             ) -> list[RequiredResource]:
         """Applies a list of requirements to filter resource items and versions."""
         result: list[RequiredResource] = []
-        for req in requirements:
+        for alias_req in requirements:
+            # potentially has an alias
+            if m := ALIAS_REQ.match(alias_req):
+                alias = m.group("alias")
+                req = alias_req[m.end(0):]
+            else:
+                alias = None
+                req = alias_req
             req_obj = Requirement(req)
             name = req_obj.name
             if name not in self.resources:
@@ -149,6 +161,7 @@ class Registry(msgspec.Struct):
                     res_item=res_item,
                     extras=req_obj.extras,
                     path_versioning=path_versioning,
+                    alias=alias,
                     )
             result.append(res_req)
         return result

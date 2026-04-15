@@ -2,6 +2,7 @@ import asyncio
 import logging
 import niquests
 from pathlib import Path
+import shutil
 import zipfile
 
 from .cache import ResourceCache
@@ -89,8 +90,8 @@ def sync_operation(
                 target_path.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
             copy_or_link(cache_path, target_path)
             logger.info("created resource at %s", target_path)
-        elif has_attr(fi.lock_entry, "members"):
-            zf = ZipFile(cache_path)
+        elif hasattr(fi.lock_entry, "members"):
+            zf = zipfile.ZipFile(cache_path)
             zf_members = {
                     Path(name).name: name
                     for name in zf.namelist()

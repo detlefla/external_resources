@@ -27,7 +27,7 @@ class RequirementCollection(msgspec.Struct):
         names: set[str] = set()
         for rr in self.requirements.values():
             for filename in rr.get_resource_version().local_filenames():
-                s_filename = str(filename)
+                s_filename = f"{rr.name}/{rr.version}/{filename}"
                 if s_filename in names:
                     raise ResourceSpecificationError(
                             f"filename conflict for “{s_filename}”")
