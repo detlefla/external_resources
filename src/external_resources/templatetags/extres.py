@@ -39,7 +39,7 @@ def _get_resources() -> dict[str, dict[str, list[ResourceElement]]]:
             url = static / f.destination
             if res.name not in res_type:
                 res_type[res.name] = []
-            res_type[res.name].append(ResourceElement(url=url))  # XXX module, defer
+            res_type[res.name].append(ResourceElement(url=str(url)))  # XXX module, defer
     PROCESSED.append(True)
     return RESOURCES
 
@@ -50,7 +50,7 @@ def css_resource(name: str) -> str:
     files = res.get(name)
     if files is None:
         return ""
-    args: list[str] = []
+    args: list[dict[str, str]] = []
     for f in files:
         args.append({"url": f.url})
     result = format_html_join("\n",
@@ -61,7 +61,12 @@ def css_resource(name: str) -> str:
 
 @register.simple_tag
 def font_resource(name: str):
-    res = _get_resources()
+    # XXX not implemented
+    res = _get_resources().get("fonts", {})
+    files = res.get(name)
+    if files is None:
+        return ""
+    raise NotImplementedError
     rel_url = Path("fonts") / name  # XXX
     html = """ """
     return format_html(html, url=rel_url)

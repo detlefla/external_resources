@@ -36,9 +36,9 @@ class Options(msgspec.Struct):
     cache_dir: Path
     registry_path: Path
     registry_object: Registry
+    lockfile_path: Path
     config_file_path: Path | None = None
     config_object: Config | None = None
-    lockfile_path: Path | None = None
     
     dry_run: bool = False
     debug: bool = False

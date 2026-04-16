@@ -36,9 +36,9 @@ def _fill_cache(
         if fi.download_ok and fi.data is not None:
             cache.add_to_cache(
                     url=fi.url,
-                    size=fi.size,
-                    hash=fi.hash,
-                    data_file=fi.temp_filename,
+                    size=fi.size,  # type: ignore
+                    hash=fi.hash,  # type: ignore
+                    data_file=fi.temp_filename,  # type: ignore # never None
                     )
         else:
             logger.error(
@@ -58,10 +58,8 @@ def lock_operation(
         cache: ResourceCache,
         options: Options,
         ) -> None:
-    fi_list = _fill_cache(lf, cache, options)
-    
     write_lockfile(
-            options.lockfile_path,  # type: ignore[arg-type] # is never None
+            options.lockfile_path,
             lf,
             )
 
@@ -84,8 +82,11 @@ def sync_operation(
     
     for fi in fi_list:
         cache_path = cache.get_filepath(fi.url)
+        if cache_path is None:
+            logger.warning("no cache path for %s", fi.url)
+            continue
         if hasattr(fi.lock_entry, "destination"):
-            target_path = target / fi.lock_entry.destination
+            target_path = target / fi.lock_entry.destination  # type: ignore
             if not target_path.parent.exists():
                 target_path.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
             copy_or_link(cache_path, target_path)
@@ -116,7 +117,7 @@ async def download_a(
         ) -> None:
     r = await s.get(file_info.url, stream=True)
     data = await r.content
-    file_info.download_status = r.status_code
+    file_info.download_status = r.status_code or 999  # status_code could be None
     if r.ok and data is not None and file_info.temp_filename is not None:
         # data should not be None if status == 200, only soothing the type checker
         # the temp_filename should never be None, only soothing the type checker
